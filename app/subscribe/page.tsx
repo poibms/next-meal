@@ -4,6 +4,7 @@ import {availablePlans} from "@/lib/plans";
 import {useMutation} from "@tanstack/react-query";
 import {useUser} from "@clerk/nextjs";
 import {useRouter} from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
 
 type SubscribeResponse = {
   url: string;
@@ -20,7 +21,7 @@ async function subscribeToPlan(planType: string, userId: string, email: string):
       planType,
       userId,
       email,
-    }),
+    })
   });
 
   if (!res.ok) {
@@ -45,11 +46,15 @@ const Subscribe = () => {
       return subscribeToPlan(planType, userId, email);
     },
     onSuccess: data => {
+      toast.success("Redirecting to checkout!", { id: "subscribe" });
+
       window.location.href = data.url;
     },
-    onError: error => {
-      console.log(error)
-    }
+    onError: () => {
+      toast.error("Something went wrong.", {
+        id: "subscribe",
+      });
+    },
   })
 
   const handleSubscribe = (planType: string) => {
@@ -63,7 +68,7 @@ const Subscribe = () => {
 
   return (
     <div className="px-4 py-8 sm:py-12 lg:py-16">
-
+      <Toaster position="top-right" />
       <div>
         <h2 className="text-3xl font-bold text-center mt-12 sm:text-5xl tracking-tight">
           Pricing

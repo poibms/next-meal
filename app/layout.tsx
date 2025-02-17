@@ -3,6 +3,8 @@ import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import {ClerkProvider} from "@clerk/nextjs";
+import ReactQueryClientProvider from "@/components/react-query-client-provider";
+import React from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,10 +32,12 @@ export default function RootLayout({
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 text-gray-900`}
           >
-            <Navbar/>
-            <div className={'max-w-7xl mx-auto pt-16 p-4 min-h-screen'}>
-            {children}
-            </div>
+            <ReactQueryClientProvider>
+              <Navbar/>
+              <div className={'max-w-7xl mx-auto pt-16 p-4 min-h-screen'}>
+              {children}
+              </div>
+            </ReactQueryClientProvider>
           </body>
         </html>
       </ClerkProvider>

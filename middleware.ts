@@ -5,6 +5,7 @@ const publicRoutes = createRouteMatcher([
   '/',
   '/sign-up(.*)',
   '/subscribe(.*)',
+  '/api/webhook(.*)'
 ])
 
 const isSignUpRoute = createRouteMatcher(['/sign-up(.*)',])

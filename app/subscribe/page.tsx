@@ -29,8 +29,7 @@ async function subscribeToPlan(planType: string, userId: string, email: string):
     throw new Error(errorData.error || "Something went wrong.");
   }
 
-  const data: SubscribeResponse = await res.json();
-  return data;
+  return await res.json();
 }
 
 const Subscribe = () => {
@@ -45,9 +44,11 @@ const Subscribe = () => {
       }
       return subscribeToPlan(planType, userId, email);
     },
+    onMutate: () => {
+      toast.loading('Processing your subscription...')
+    },
     onSuccess: data => {
       toast.success("Redirecting to checkout!", { id: "subscribe" });
-
       window.location.href = data.url;
     },
     onError: () => {

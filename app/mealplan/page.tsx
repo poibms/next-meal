@@ -1,22 +1,84 @@
 'use client'
 import React from 'react';
+import {useMutation} from "@tanstack/react-query";
 
 interface MealPlanInput {
   dietType: string;
   calories: number;
   allergies: string;
   cuisine: string;
-  snacks: boolean;
+  snacks: string;
   days?: number;
+}
+
+interface DailyMealPlan {
+  Breakfast?: string;
+  Lunch?: string;
+  Dinner?: string;
+  Snacks?: string;
+}
+
+interface WeeklyMealPlan {
+  [day: string]: DailyMealPlan;
+}
+
+interface MealPlanResponse {
+  mealPlan?: WeeklyMealPlan;
+  error?: string;
 }
 
 const MealPlanDashboard = () => {
 
+  const {isPending, mutate, data, isSuccess} = useMutation<MealPlanResponse, Error, MealPlanInput>({
+    mutationFn: async (payload: MealPlanInput) => {
+      const response = await fetch("/api/generate-mealplan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData: MealPlanResponse = await response.json();
+        throw new Error(errorData.error || "Failed to generate meal plan.");
+      }
+
+      return response.json();
+    },
+  })
+
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    formData.get('dietType')
+    const payload: MealPlanInput ={
+      allergies: formData.get('allergies')?.toString() || "",
+      calories: Number(formData.get('calories')) || 2000,
+      cuisine: formData.get('cuisine')?.toString() || "",
+      dietType: formData.get('dietType')?.toString() || "",
+      snacks: formData.get('snacks')?.toString() || "",
+      days: 7
+    }
+
+    mutate(payload)
   }
+
+  const daysOfWeek = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  const getMealPlanForDay = (day: string): DailyMealPlan | undefined => {
+    if (!data?.mealPlan) return undefined;
+
+    return data.mealPlan[day];
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center  p-4">
@@ -77,10 +139,13 @@ const MealPlanDashboard = () => {
             </div>
 
             <div>
-              <button type={'submit'}
-                      className={`w-full bg-emerald-500 text-white py-2 px-4 rounded-md hover:bg-emerald-600 transition-colors`}
+              <button
+                type={'submit'}
+                className={`w-full bg-emerald-500 text-white py-2 px-4 rounded-md hover:bg-emerald-600 transition-colors
+                 ${isPending ? "opacity-50 cursor-not-allowed" : ""}`
+                }
               >
-                Generate meal plan
+                {isPending ? "Generating..." : "Generate Meal Plan"}
               </button>
             </div>
           </form>
@@ -91,6 +156,55 @@ const MealPlanDashboard = () => {
             Weekly Meal Plan
           </h2>
 
+          {isSuccess && data.mealPlan ? (
+            <div className="h-[600px] overflow-y-auto">
+              <div className="space-y-6">
+                {daysOfWeek.map((day) => {
+                  const mealPlan = getMealPlanForDay(day);
+                  return (
+                    <div
+                      key={day}
+                      className="bg-white shadow-md rounded-lg p-4 border border-emerald-200"
+                    >
+                      <h3 className="text-xl font-semibold mb-2 text-emerald-600">
+                        {day}
+                      </h3>
+                      {mealPlan ? (
+                        <div className="space-y-2">
+                          <div>
+                            <strong>Breakfast:</strong> {mealPlan.Breakfast}
+                          </div>
+                          <div>
+                            <strong>Lunch:</strong> {mealPlan.Lunch}
+                          </div>
+                          <div>
+                            <strong>Dinner:</strong> {mealPlan.Dinner}
+                          </div>
+                          {mealPlan.Snacks && (
+                            <div>
+                              <strong>Snacks:</strong> {mealPlan.Snacks}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500">No meal plan available.</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : isPending ? (
+            <div className="flex justify-center items-center h-full">
+              {/* Spinner */}
+              Spinner...
+              {/*<Spinner />*/}
+            </div>
+          ) : (
+            <p className="text-gray-600">
+              Please generate a meal plan to see it here.
+            </p>
+          )}
         </div>
 
       </div>

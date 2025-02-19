@@ -1,6 +1,7 @@
 'use client'
 import React from 'react';
 import {useMutation} from "@tanstack/react-query";
+import {Spinner} from "@/components/Spinner";
 
 interface MealPlanInput {
   dietType: string;
@@ -196,9 +197,7 @@ const MealPlanDashboard = () => {
             </div>
           ) : isPending ? (
             <div className="flex justify-center items-center h-full">
-              {/* Spinner */}
-              Spinner...
-              {/*<Spinner />*/}
+              <Spinner />
             </div>
           ) : (
             <p className="text-gray-600">
